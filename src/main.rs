@@ -16,6 +16,9 @@ enum Commands {
     Install {
         #[arg(short, long)]
         version: Option<String>,
+
+        #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ' ')]
+        tools: Option<Vec<String>>,
     },
 }
 
@@ -24,19 +27,18 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     
     match args.command {
-        Commands::Install { version } => {
-            let v = match version {
-                Some(v) => {
-                    println!("Installing ESP-IDF version: {}", v);
-                    v
-                },
-                None => {
-                    println!("Installing latest ESP-IDF version");
-                    "main".to_string()
-                },
-            };
+        Commands::Install { version, tools } => {
+            let v = version.unwrap_or_else(|| {
+                println!("No version specified, defaulting to 'main'");
+                "main".to_string()
+            });
             
-            let installer = Installer::new(format!("v{}", v));
+            let tools = tools.unwrap_or_else(|| {
+                println!("No tools specified, run with --tools to specify tools to install");
+                vec![]
+            });
+            
+            let installer = Installer::new(format!("v{}", v), tools);
             
             installer.install().await?;
         }

@@ -6,12 +6,14 @@ const ESPRESSIF_REPO: &str = "https://github.com/espressif/esp-idf.git";
 
 pub struct Installer {
     version: String,
+    tools: Vec<String>,
 }
 
 impl Installer {
-    pub fn new(version: String) -> Self {
+    pub fn new(version: String, tools: Vec<String>) -> Self {
         Installer {
-            version
+            version,
+            tools,
         }
     }
     
