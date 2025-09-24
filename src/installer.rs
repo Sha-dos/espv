@@ -1,3 +1,4 @@
+use crate::manager::Manager;
 use anyhow::{Result, anyhow};
 use tokio::fs;
 use tokio::process::Command;
@@ -91,6 +92,9 @@ impl Installer {
             ))
             .output()
             .await?;
+
+        let manager = Manager::new(self.version.clone());
+        manager.use_version().await?;
 
         Ok(())
     }

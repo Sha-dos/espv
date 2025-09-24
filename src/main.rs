@@ -6,7 +6,11 @@ use clap::{Parser, Subcommand};
 use manager::Manager;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(
+    name = "espv",
+    version,
+    about = "Command line tool to manage multiple esp-idf versions at once"
+)]
 struct Args {
     #[command(subcommand)]
     command: Commands,
@@ -14,6 +18,7 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    #[command(about = "Install ESP-IDF (e.g. espv install v5.5 -- tools esp32 esp32s3)")]
     Install {
         version: Option<String>,
 
@@ -21,9 +26,6 @@ enum Commands {
         tools: Option<Vec<String>>,
     },
     UnInstall {
-        version: String,
-    },
-    Use {
         version: String,
     },
 }
@@ -47,11 +49,6 @@ async fn main() -> anyhow::Result<()> {
             let installer = Installer::new(v, tools);
 
             installer.install().await?;
-        }
-        Commands::Use { version } => {
-            let manager = Manager::new(version);
-
-            manager.use_version().await?;
         }
         Commands::UnInstall { version } => {
             let manager = Manager::new(version);

@@ -42,13 +42,26 @@ echo "ESP-IDF {} environment activated"
             .output()
             .await?;
 
-        println!("Created environment script: {}", script_path);
+        let wrapper_path = format!("{}/.espv_wrapper.sh", env!("HOME"));
+        let wrapper_content = format!(
+            r#"#!/bin/bash
+# espv wrapper function - add this to your shell profile
+espv_use() {{
+    if [ "$1" ]; then
+        source "$HOME/.espv_env_$1.sh"
+    else
+        echo "Usage: espv_use <version>"
+    fi
+}}
+"#
+        );
 
-        Command::new("bash")
-            .arg("-c")
-            .arg(format!("source {}", script_path))
-            .output()
-            .await?;
+        fs::write(&wrapper_path, wrapper_content).await?;
+
+        println!("Environment configured for ESP-IDF {}", self.version);
+        println!("Add this to your ~/.zshrc or ~/.bashrc:");
+        println!("source {}", wrapper_path);
+        println!("Then use: espv_use {}", self.version);
 
         Ok(())
     }
