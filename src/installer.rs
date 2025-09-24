@@ -68,9 +68,15 @@ impl Installer {
         }
         
         println!("Installing tools: {:?}", self.tools);
+        let idf_tools_path = format!("{}/espressif/{}/.espressif/", env!("HOME"), &self.version);
+        
         Command::new("sh")
             .arg("-c")
-            .arg(format!("cd {}/espressif/{}/esp-idf && ./install.sh {}", env!("HOME"), &self.version, self.tools_list()))
+            .arg(format!("export IDF_TOOLS_PATH={} && cd {}/espressif/{}/esp-idf && ./install.sh {}",
+                         idf_tools_path,
+                         env!("HOME"),
+                         &self.version,
+                         self.tools_list()))
             .output()
             .await?;
         
