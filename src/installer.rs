@@ -1,5 +1,5 @@
+use anyhow::{Result, anyhow};
 use tokio::fs;
-use anyhow::{anyhow, Result};
 use tokio::process::Command;
 
 const ESPRESSIF_REPO: &str = "https://github.com/espressif/esp-idf.git";
@@ -11,10 +11,7 @@ pub struct Installer {
 
 impl Installer {
     pub fn new(version: String, tools: Vec<String>) -> Self {
-        Installer {
-            version,
-            tools,
-        }
+        Installer { version, tools }
     }
 
     async fn get_available_branches() -> Result<Vec<String>> {
@@ -27,7 +24,8 @@ impl Installer {
 
         let stdout = String::from_utf8_lossy(&output.stdout);
 
-        let branches = stdout.lines()
+        let branches = stdout
+            .lines()
             .map(|line| line.split('/').last().unwrap().to_string())
             .collect();
 
@@ -48,8 +46,14 @@ impl Installer {
     }
 
     pub async fn install(&self) -> Result<()> {
-        if !Self::get_available_branches().await?.contains(&self.version) {
-            return Err(anyhow!("Version {} not found in espressif repository", self.version));
+        if !Self::get_available_branches()
+            .await?
+            .contains(&self.version)
+        {
+            return Err(anyhow!(
+                "Version {} not found in espressif repository",
+                self.version
+            ));
         }
 
         println!("Installing espressif {}", self.version);
@@ -59,7 +63,13 @@ impl Installer {
         println!("Cloning repository");
         Command::new("sh")
             .arg("-c")
-            .arg(format!("cd {}/espressif/{} && git clone {} --branch {} --recursive", env!("HOME"), &self.version, ESPRESSIF_REPO, &self.version))
+            .arg(format!(
+                "cd {}/espressif/{} && git clone {} --branch {} --recursive",
+                env!("HOME"),
+                &self.version,
+                ESPRESSIF_REPO,
+                &self.version
+            ))
             .output()
             .await?;
 
@@ -72,11 +82,13 @@ impl Installer {
 
         Command::new("sh")
             .arg("-c")
-            .arg(format!("export IDF_TOOLS_PATH={} && cd {}/espressif/{}/esp-idf && ./install.sh {}",
-                         idf_tools_path,
-                         env!("HOME"),
-                         &self.version,
-                         self.tools_list()))
+            .arg(format!(
+                "export IDF_TOOLS_PATH={} && cd {}/espressif/{}/esp-idf && ./install.sh {}",
+                idf_tools_path,
+                env!("HOME"),
+                &self.version,
+                self.tools_list()
+            ))
             .output()
             .await?;
 
