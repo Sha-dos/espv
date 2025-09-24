@@ -33,6 +33,19 @@ impl Installer {
         
         Ok(branches)
     }
+    
+    /// Creates a string of the tools seperated by commas
+    fn tools_list(&self) -> String {
+        let mut result = String::new();
+        
+        for tool in &self.tools {
+            result.push_str(tool);
+            result.push(',');
+        }
+        
+        result.pop();
+        result
+    }
 
     pub async fn install(&self) -> Result<()> {
         if !Self::get_available_branches().await?.contains(&self.version) {
@@ -47,6 +60,17 @@ impl Installer {
         Command::new("sh")
             .arg("-c")
             .arg(format!("cd {}/espressif/{} && git clone {} --branch {} --recursive", env!("HOME"), &self.version, ESPRESSIF_REPO, &self.version))
+            .output()
+            .await?;
+
+        if self.tools.is_empty() {
+            return Err(anyhow!("No tools specified for installation"));
+        }
+        
+        println!("Installing tools: {:?}", self.tools);
+        Command::new("sh")
+            .arg("-c")
+            .arg(format!("cd {}/espressif/{}/esp-idf && ./install.sh {}", env!("HOME"), &self.version, self.tools_list()))
             .output()
             .await?;
         
