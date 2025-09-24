@@ -1,8 +1,9 @@
 mod installer;
+mod manager;
 
 use clap::{Parser, Subcommand};
+use manager::Manager;
 use crate::installer::Installer;
-use anyhow::Result;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -14,16 +15,18 @@ struct Args {
 #[derive(Subcommand, Debug)]
 enum Commands {
     Install {
-        #[arg(short, long)]
         version: Option<String>,
-
+        
         #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ' ')]
         tools: Option<Vec<String>>,
+    },
+    Use {
+        version: String,
     },
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     
     match args.command {
@@ -38,10 +41,15 @@ async fn main() -> Result<()> {
                 vec![]
             });
             
-            let installer = Installer::new(format!("v{}", v), tools);
+            let installer = Installer::new(v, tools);
             
             installer.install().await?;
-        }
+        },
+        Commands::Use { version } => {
+            let manager = Manager::new(version);
+            
+            manager.use_version().await?;
+        },
     }
     
     Ok(())

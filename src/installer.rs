@@ -16,7 +16,7 @@ impl Installer {
             tools,
         }
     }
-    
+
     async fn get_available_branches() -> Result<Vec<String>> {
         let output = Command::new("git")
             .arg("ls-remote")
@@ -24,25 +24,25 @@ impl Installer {
             .arg(ESPRESSIF_REPO)
             .output()
             .await?;
-        
+
         let stdout = String::from_utf8_lossy(&output.stdout);
-        
+
         let branches = stdout.lines()
             .map(|line| line.split('/').last().unwrap().to_string())
             .collect();
-        
+
         Ok(branches)
     }
-    
+
     /// Creates a string of the tools seperated by commas
     fn tools_list(&self) -> String {
         let mut result = String::new();
-        
+
         for tool in &self.tools {
             result.push_str(tool);
             result.push(',');
         }
-        
+
         result.pop();
         result
     }
@@ -51,7 +51,7 @@ impl Installer {
         if !Self::get_available_branches().await?.contains(&self.version) {
             return Err(anyhow!("Version {} not found in espressif repository", self.version));
         }
-        
+
         println!("Installing espressif {}", self.version);
 
         fs::create_dir_all(format!("{}/espressif/{}", env!("HOME"), &self.version)).await?;
@@ -66,10 +66,10 @@ impl Installer {
         if self.tools.is_empty() {
             return Err(anyhow!("No tools specified for installation"));
         }
-        
+
         println!("Installing tools: {:?}", self.tools);
         let idf_tools_path = format!("{}/espressif/{}/.espressif/", env!("HOME"), &self.version);
-        
+
         Command::new("sh")
             .arg("-c")
             .arg(format!("export IDF_TOOLS_PATH={} && cd {}/espressif/{}/esp-idf && ./install.sh {}",
@@ -79,7 +79,7 @@ impl Installer {
                          self.tools_list()))
             .output()
             .await?;
-        
+
         Ok(())
     }
 }
