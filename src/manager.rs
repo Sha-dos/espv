@@ -1,3 +1,4 @@
+use anyhow::Result;
 use tokio::fs;
 use tokio::process::Command;
 
@@ -10,7 +11,7 @@ impl Manager {
         Manager { version }
     }
 
-    pub async fn use_version(&self) -> anyhow::Result<()> {
+    pub async fn use_version(&self) -> Result<()> {
         println!("Using espressif {}", self.version);
         let idf_tools_path = format!("{}/espressif/{}/.espressif/", env!("HOME"), &self.version);
         let esp_idf_path = format!("{}/espressif/{}/esp-idf", env!("HOME"), &self.version);
@@ -48,6 +49,14 @@ echo "ESP-IDF {} environment activated"
             .arg(format!("source {}", script_path))
             .output()
             .await?;
+
+        Ok(())
+    }
+
+    pub async fn uninstall(&self) -> Result<()> {
+        fs::remove_dir_all(format!("{}/espressif/{}", env!("HOME"), &self.version)).await?;
+
+        fs::remove_file(format!("{}/.espv_env_{}.sh", env!("HOME"), &self.version)).await?;
 
         Ok(())
     }

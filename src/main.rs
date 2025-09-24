@@ -20,6 +20,9 @@ enum Commands {
         #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ' ')]
         tools: Option<Vec<String>>,
     },
+    UnInstall {
+        version: String,
+    },
     Use {
         version: String,
     },
@@ -49,6 +52,11 @@ async fn main() -> anyhow::Result<()> {
             let manager = Manager::new(version);
 
             manager.use_version().await?;
+        }
+        Commands::UnInstall { version } => {
+            let manager = Manager::new(version);
+
+            manager.uninstall().await?;
         }
     }
 
